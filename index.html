@@ -52,6 +52,8 @@
         .badge-line { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 12px; }
         .membership-tag { font-size: 10px; background: #eee; padding: 1px 4px; border-radius: 2px; color: #666; }
         .status-text { color: var(--tb-orange); font-size: 14px; font-weight: 500; }
+        
+        /* 倒计时样式保持不变 */
         .countdown { display: block; color: var(--text-sub); font-size: 13px; margin-top: 8px; text-align: center; }
 
         .method-selector { display: flex; padding: 25px 16px; gap: 10px; }
@@ -117,7 +119,7 @@
             <span class="membership-tag">铂金会员</span>
             <span class="status-text">因您信誉良好，平台已同意您的退货申请</span>
         </div>
-        <span class="countdown">5天15时46分后未寄出将撤销退货申请</span>
+        <span class="countdown" id="countdown-timer">计算中...</span>
 
         <div class="method-selector">
             <div class="card"><div class="name">上门取件</div><div class="desc">快递员上门</div></div>
@@ -283,6 +285,15 @@
             document.getElementById('display-main').innerText = lastAddr.main;
             document.getElementById('display-sub').innerText = lastAddr.sub;
         }
+
+        // 3. 随机倒计时生成（7天内）
+        const randomDays = Math.floor(Math.random() * 7); // 0-6天
+        const randomHours = Math.floor(Math.random() * 24); // 0-23小时
+        const randomMinutes = Math.floor(Math.random() * 60); // 0-59分钟
+        
+        // 拼接字符串并赋值给对应元素
+        const countdownStr = `${randomDays}天${randomHours}时${randomMinutes}分后未寄出将撤销退货申请`;
+        document.getElementById('countdown-timer').innerText = countdownStr;
 
         renderHistory();
     };
