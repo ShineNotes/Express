@@ -53,7 +53,6 @@
         .membership-tag { font-size: 10px; background: #eee; padding: 1px 4px; border-radius: 2px; color: #666; }
         .status-text { color: var(--tb-orange); font-size: 14px; font-weight: 500; }
         
-        /* 倒计时样式保持不变 */
         .countdown { display: block; color: var(--text-sub); font-size: 13px; margin-top: 8px; text-align: center; }
 
         .method-selector { display: flex; padding: 25px 16px; gap: 10px; }
@@ -178,13 +177,56 @@
 <script>
     let addressHistory = JSON.parse(localStorage.getItem('tb_address_history_v16') || '[]');
 
-    // 随机商品数据池
-    const products = [
-        { title: "夏季超轻薄款透气运动鞋垫 减震软弹不累脚 男款吸汗防臭", spec: "颜色分类：【2双装】经典黑/标准码", img: "https://img.alicdn.com/imgextra/i4/O1CN01I7S9p81G9p9p9p9p9_!!0-item_pic.jpg" },
-        { title: "全棉加厚毛巾袜 男士中筒商务袜 四季通穿 吸汗耐磨 6双盒装", spec: "颜色分类：混色装/均码（39-44码）", img: "https://img.alicdn.com/imgextra/i2/O1CN01fU58S41G9p9p9p9p9_!!0-item_pic.jpg" },
-        { title: "2024新款防紫外线遮阳伞 黑胶涂层超强过滤 晴雨两用 极轻便携", spec: "颜色分类：极光白【自动开合款】", img: "https://img.alicdn.com/imgextra/i3/O1CN01K38p81G9p9p9p9p9_!!0-item_pic.jpg" },
-        { title: "简约ins风纯色保温杯 316不锈钢内胆 24小时超长恒温 随行咖啡杯", spec: "颜色分类：磨砂灰/500ml", img: "https://img.alicdn.com/imgextra/i1/O1CN01Z7S9p81G9p9p9p9p9_!!0-item_pic.jpg" }
+    // ================= 动态商品生成库 =================
+    // 1. 修饰词库
+    const modifiers = [
+        "2026新款", "夏季超薄透气", "ins风高颜值", "纯棉加厚", "防紫外线", 
+        "极简百搭", "重磅日系", "秋冬加绒保暖", "男女同款", "网红爆款", 
+        "黑科技抗皱", "速干吸汗", "户外防水耐磨", "明星同款", "旗舰升级版", 
+        "尊享礼盒装", "超长续航", "迷你便携", "大容量实用", "法式复古"
     ];
+
+    // 2. 核心品名库
+    const coreNames = [
+        "直筒宽松牛仔裤", "主动降噪蓝牙耳机", "运动减震软弹鞋垫", "黑胶晴雨两用遮阳伞", 
+        "316不锈钢恒温保温杯", "全包防摔硅胶手机壳", "冰丝无痕短袖T恤", "抽绳束脚运动休闲裤", 
+        "防泼水通勤双肩包", "A类裸睡全棉四件套", "无线磁吸快充充电宝", "桌面静音大雾量加湿器", 
+        "多功能智能运动手环", "护颈回弹记忆棉枕头", "无线便携多功能榨汁机", "加厚防滑健身瑜伽垫", 
+        "家用深层肌肉筋膜枪", "卧室助眠无火香薰", "桌面多格化妆品收纳盒", "抗菌速干运动冷感毛巾"
+    ];
+
+    // 3. 规格颜色库
+    const specs = [
+        "颜色分类：极光黑 / 标准版", "颜色分类：米白色 / L码", "颜色分类：星空灰 / 500ml", 
+        "颜色分类：透明白 / 均码", "颜色分类：雾霾蓝 / M码", "套装选项：【买一送一】/ 曜石黑", 
+        "规格型号：官方标配 / 珍珠白", "颜色分类：复古绿 / XL码", "颜色分类：樱花粉 / 升级加厚款", 
+        "尺寸规格：150x200cm / 纯色简约", "颜色分类：卡其色 / 39码", "配置选择：典雅银 / 旗舰256G", 
+        "颜色分类：海军蓝 / 基础百搭款", "包装规格：精美礼盒装 / 香槟金", "颜色分类：暗夜绿 / 尊享顶配版",
+        "颜色分类：燕麦色 / S码", "规格：两件装 / 混色发货", "尺寸：通用型 / 纳米灰", 
+        "颜色分类：玫瑰金 / 限量版", "型号：Type-C接口 / 1.5米长"
+    ];
+
+    // 4. 通用商品主图池 (提取了淘宝常见的通用风格图片)
+    const images = [
+        "https://img.alicdn.com/imgextra/i4/O1CN01I7S9p81G9p9p9p9p9_!!0-item_pic.jpg",
+        "https://img.alicdn.com/imgextra/i2/O1CN01fU58S41G9p9p9p9p9_!!0-item_pic.jpg",
+        "https://img.alicdn.com/imgextra/i3/O1CN01K38p81G9p9p9p9p9_!!0-item_pic.jpg",
+        "https://img.alicdn.com/imgextra/i1/O1CN01Z7S9p81G9p9p9p9p9_!!0-item_pic.jpg"
+    ];
+
+    // 生成随机商品的函数
+    function generateRandomProduct() {
+        const modifier = modifiers[Math.floor(Math.random() * modifiers.length)];
+        const coreName = coreNames[Math.floor(Math.random() * coreNames.length)];
+        const spec = specs[Math.floor(Math.random() * specs.length)];
+        const img = images[Math.floor(Math.random() * images.length)];
+        
+        return {
+            title: modifier + " " + coreName,
+            spec: spec,
+            img: img
+        };
+    }
 
     function handleSmartParse() {
         const rawText = document.getElementById('smart-input').value.trim();
@@ -225,7 +267,6 @@
     }
 
     function saveToHistory(main, sub) {
-        // 去重
         addressHistory = addressHistory.filter(item => item.main !== main);
         addressHistory.unshift({ main, sub });
         if (addressHistory.length > 10) addressHistory.pop();
@@ -251,7 +292,7 @@
     }
 
     function deleteHistoryItem(event, index) {
-        event.stopPropagation(); // 阻止冒泡，不触发 applyHistory
+        event.stopPropagation();
         addressHistory.splice(index, 1);
         localStorage.setItem('tb_address_history_v16', JSON.stringify(addressHistory));
         renderHistory();
@@ -273,15 +314,23 @@
 
     // 页面加载时的逻辑
     window.onload = function() {
-        // 1. 随机商品
-        const randomProduct = products[Math.floor(Math.random() * products.length)];
-        document.getElementById('product-title').innerText = randomProduct.title;
-        document.getElementById('product-spec').innerText = randomProduct.spec;
-        document.getElementById('product-img').style.backgroundImage = `url('${randomProduct.img}')`;
+        // 1. 生成海量且不重复的商品数据
+        let lastTitle = sessionStorage.getItem('tb_last_product_title');
+        let newProduct = generateRandomProduct();
+        
+        // 防重复机制：如果生成的标题和上次一样，重新生成
+        while (newProduct.title === lastTitle) {
+            newProduct = generateRandomProduct();
+        }
+        sessionStorage.setItem('tb_last_product_title', newProduct.title);
+
+        document.getElementById('product-title').innerText = newProduct.title;
+        document.getElementById('product-spec').innerText = newProduct.spec;
+        document.getElementById('product-img').style.backgroundImage = `url('${newProduct.img}')`;
 
         // 2. 默认地址设为历史记录最后一次显示的
         if (addressHistory.length > 0) {
-            const lastAddr = addressHistory[0]; // 数组第一位是最新的一条
+            const lastAddr = addressHistory[0];
             document.getElementById('display-main').innerText = lastAddr.main;
             document.getElementById('display-sub').innerText = lastAddr.sub;
         }
@@ -291,7 +340,6 @@
         const randomHours = Math.floor(Math.random() * 24); // 0-23小时
         const randomMinutes = Math.floor(Math.random() * 60); // 0-59分钟
         
-        // 拼接字符串并赋值给对应元素
         const countdownStr = `${randomDays}天${randomHours}时${randomMinutes}分后未寄出将撤销退货申请`;
         document.getElementById('countdown-timer').innerText = countdownStr;
 
